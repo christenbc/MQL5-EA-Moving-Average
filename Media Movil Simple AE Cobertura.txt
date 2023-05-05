@@ -1,0 +1,70 @@
+//+------------------------------------------------------------------+
+//|                              Media Movil Simple AE Cobertura.mq5 |
+//|                                            Copyright 2023, Chris |
+//|                                                                  |
+//+------------------------------------------------------------------+
+
+// Información del asesor
+
+#property copyright "Copyright 2023, Chris"
+#property description "Asesor Experto que aplica el sistema de media móvil simple y es provisto como parte del curso en trading algorítmico"
+#property link      ""
+#property version   "1.00"
+
+// Notas del asesor
+
+
+// Enumeraciones
+
+
+// Variables input y globales
+
+input ulong MagicNumber = 101;
+
+input int PeriodoMA = 30; // 30 número de velas a tener en cuenta por defecto
+input ENUM_MA_METHOD MetodoMA = MODE_EMA; // media móvil simple por defecto
+input int ShiftMA = 0; // número de velas desplazadas la media móvil, por defecto 0
+input ENUM_APPLIED_PRICE PrecioMA = PRICE_CLOSE; // por defecto la media móvil se basará en los cierres de velas
+
+input double VolumenFijo = 0.1; // 1 minilote por defecto
+
+input ushort SLPuntosFijos = 0; // stop loss
+input ushort SLPuntosFijosMA = 0; // stop loss que está por encima o debajo de la media móvil
+input ushort TPPuntosFijos = 0; // take profit
+input ushort TSLPuntosFijos = 0; // trading stop loss
+input ushort BEPuntosFijos = 0; // breakeven
+
+// Procesadores de eventos
+
+int OnInit()
+  {
+
+   return(INIT_SUCCEEDED);
+  }
+
+void OnDeinit(const int reason)
+  {
+
+
+  }
+
+void OnTick()
+  {
+  // Control de nueva barra
+  
+  
+  // Precio e indicadores
+  
+  
+  // Cierre de posiciones
+  
+  
+  // Colocación de órdenes
+  
+  
+  // Gestión de posiciones
+  
+  }
+
+
+// Funciones
