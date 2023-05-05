@@ -38,36 +38,47 @@ input ushort TPPuntosFijos = 0; // take profit
 input ushort TSLPuntosFijos = 0; // trading stop loss
 input ushort BEPuntosFijos = 0; // breakeven
 
+datetime glTiempoBarraApertura;
+
 // Procesadores de eventos
 
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 int OnInit()
   {
 
    return(INIT_SUCCEEDED);
   }
 
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void OnDeinit(const int reason)
   {
 
 
   }
 
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void OnTick()
   {
-  // Control de nueva barra
-  
-  
-  // Precio e indicadores
-  
-  
-  // Cierre de posiciones
-  
-  
-  // Colocación de órdenes
-  
-  
-  // Gestión de posiciones
-  
+// Control de nueva barra
+
+
+// Precio e indicadores
+
+
+// Cierre de posiciones
+
+
+// Colocación de órdenes
+
+
+// Gestión de posiciones
+
   }
 
 
