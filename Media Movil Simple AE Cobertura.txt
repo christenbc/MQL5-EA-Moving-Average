@@ -83,7 +83,8 @@ void OnTick()
      {
       Print("Nueva barra detectada");
       // Precio e indicadores
-      double close1 = iClose(_Symbol, PERIOD_CURRENT, 1) // el cierre de la barra anterior. 0 es el indice de la barra actual
+      double cierre1 = Close(1);
+      Print("Cierre de la vela 1: ", cierre1);
 
 
       // Cierre de posiciones
@@ -99,3 +100,15 @@ void OnTick()
 
 
 // Funciones
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+double Close(int pShift)
+  {
+   MqlRates barra[]; // crea un objeto array del tipo estructura MqlRates
+   ArraySetAsSeries(barra, true); // configurar array barra como un array en serie (la vela actual se copiará en índice 0, la vela 1 índice 1, ...)
+   CopyRates(_Symbol, PERIOD_CURRENT, 0, 3, barra); // copia datos del precio de las barras 0, 1 y 2 a nuestro array barra
+   return barra[pShift].close; // retorna el precio de cierre del objeto barra
+  }
+//+------------------------------------------------------------------+
