@@ -47,7 +47,7 @@ datetime glTiempoBarraApertura;
 //+------------------------------------------------------------------+
 int OnInit()
   {
-   Print("Asesor inicializado");
+   glTiempoBarraApertura = D'1971.01.01'; // esto equivale a un año en segundos
 
    return(INIT_SUCCEEDED);
   }
@@ -57,7 +57,7 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
   {
-   Print("Asesor eliminado");
+
 
   }
 
@@ -66,20 +66,33 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 void OnTick()
   {
-   Print("Nuevo tick generado");
+
 // Control de nueva barra
 
+   bool nuevaBarra = false;
 
-// Precio e indicadores
+// Comprobación de nueva barra
+
+   if(glTiempoBarraApertura != iTime(_Symbol, PERIOD_CURRENT, 0))
+     {
+      nuevaBarra = true;
+      glTiempoBarraApertura = iTime(_Symbol, PERIOD_CURRENT, 0);
+     }
+
+   if(nuevaBarra)
+     {
+      Print("Nueva barra detectada");
+      // Precio e indicadores
 
 
-// Cierre de posiciones
+      // Cierre de posiciones
 
 
-// Colocación de órdenes
+      // Colocación de órdenes
 
 
-// Gestión de posiciones
+      // Gestión de posiciones
+     }
 
   }
 
