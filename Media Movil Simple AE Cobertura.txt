@@ -83,6 +83,7 @@ void OnTick()
      {
       Print("Nueva barra detectada");
       // Precio e indicadores
+      double close1 = iClose(_Symbol, PERIOD_CURRENT, 1) // el cierre de la barra anterior. 0 es el indice de la barra actual
 
 
       // Cierre de posiciones
