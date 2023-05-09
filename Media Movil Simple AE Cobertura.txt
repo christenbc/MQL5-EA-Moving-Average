@@ -39,6 +39,7 @@ input ushort TSLPuntosFijos = 0; // trading stop loss
 input ushort BEPuntosFijos = 0; // breakeven
 
 datetime glTiempoBarraApertura;
+int ManejadorMA;
 
 // Procesadores de eventos
 
@@ -48,6 +49,11 @@ datetime glTiempoBarraApertura;
 int OnInit()
   {
    glTiempoBarraApertura = D'1971.01.01'; // esto equivale a un año en segundos
+   ManejadorMA = MA_Init(PeriodoMA, ShiftMA, MetodoMA, PrecioMA);
+   
+   if (ManejadorMA == -1) {
+      return (INIT_FAILED);
+   }
 
    return(INIT_SUCCEEDED);
   }
@@ -84,6 +90,7 @@ void OnTick()
       Print("Nueva barra detectada");
       // Precio e indicadores
       double cierre1 = Close(1);
+      double open1 = Open(1);
 
       // Normalización a tick size
       double tickSize = SymbolInfoDouble(_Symbol,SYMBOL_TRADE_TICK_SIZE);
@@ -101,7 +108,7 @@ void OnTick()
   }
 
 
-// Funciones
+// Funciones de precio
 
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -112,5 +119,41 @@ double Close(int pShift)
    ArraySetAsSeries(barra, true); // configurar array barra como un array en serie (la vela actual se copiará en índice 0, la vela 1 índice 1, ...)
    CopyRates(_Symbol, PERIOD_CURRENT, 0, 3, barra); // copia datos del precio de las barras 0, 1 y 2 a nuestro array barra
    return barra[pShift].close; // retorna el precio de cierre del objeto barra
+  }
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+double Open(int pShift)
+  {
+   MqlRates barra[]; // crea un objeto array del tipo estructura MqlRates
+   ArraySetAsSeries(barra, true); // configurar array barra como un array en serie (la vela actual se copiará en índice 0, la vela 1 índice 1, ...)
+   CopyRates(_Symbol, PERIOD_CURRENT, 0, 3, barra); // copia datos del precio de las barras 0, 1 y 2 a nuestro array barra
+   return barra[pShift].open; // retorna el precio de cierre del objeto barra
+  }
+
+// Funciones de la media móvil
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+int MA_Init(int pPeriodMA, int pShiftMA, ENUM_MA_METHOD pMetodoMA, ENUM_APPLIED_PRICE pPrecioMA)
+  {
+// En caso de error, al inicializar el MA, GetLastError() nos dará el código del error y lo almacenará en _LastError
+// ResetLastError cambiará el valor de la variable a _LastError a 0
+   ResetLastError();
+
+// El manejador es un identificador único para el indicador. Se utiliza para todas las acciones relacionadas con este, como obtener datos o eliminarlo
+   int Manejador =iMA(_Symbol, PERIOD_CURRENT, pPeriodMA, pShiftMA, pMetodoMA, pPrecioMA);
+
+   if(Manejador == INVALID_HANDLE)
+     {
+      Print("Ha habido un error creando el manejador del indicador MA", GetLastError());
+      return -1;
+     }
+
+   Print("El manejador del indicador MA se ha creado con éxito");
+   return Manejador;
   }
 //+------------------------------------------------------------------+
