@@ -104,6 +104,16 @@ void OnTick()
 
       // Cierre de posiciones
 
+      // Señal de cierre
+      string exitSignal = MA_ExitSignal(cierre1, cierre2, ma1, ma2);
+
+      if(exitSignal == "CIERRE_LARGO" || exitSignal == "CIERRE_CORTO")
+        {
+
+        }
+
+      Sleep(1000); // dar tiempo al servidor para tramitar la orden
+
 
       // Colocación de órdenes
 
@@ -234,6 +244,35 @@ string MA_EntrySignal(double pPrecio1, double pPrecio2, double pMA1, double pMA2
    return str;
   }
 //+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+string MA_ExitSignal(double pPrecio1, double pPrecio2, double pMA1, double pMA2)
+  {
+   string str = "";
+   string valores;
+
+   if(pPrecio1 > pMA1 && pPrecio2 <= pMA2)
+     {
+      str = "CIERRE_CORTO";
+     }
+   else
+      if(pPrecio1 > pMA1 && pPrecio2 >= pMA2)
+        {
+         str = "CIERRE_LARGO";
+        }
+      else
+        {
+         str = "NO_CERRAR";
+        }
+
+   StringConcatenate(valores, "MA 1: ", DoubleToString(pMA1, _Digits), " | ", "MA 2: ", DoubleToString(pMA2, _Digits), " | ",  "Cierre 1: ", DoubleToString(pPrecio1, _Digits), " | ",  "Cierre 2: ", DoubleToString(pPrecio2, _Digits));
+
+   Print("Valores del precio e indicadores: ", valores);
+
+   return str;
+  }
 
 // Funciones de las bandas de Bollinger
 
