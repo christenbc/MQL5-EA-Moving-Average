@@ -163,7 +163,7 @@ int MA_Init(int pPeriodMA, int pShiftMA, ENUM_MA_METHOD pMetodoMA, ENUM_APPLIED_
    ResetLastError();
 
 // El manejador es un identificador único para el indicador. Se utiliza para todas las acciones relacionadas con este, como obtener datos o eliminarlo
-   int Manejador =iMA(_Symbol, PERIOD_CURRENT, pPeriodMA, pShiftMA, pMetodoMA, pPrecioMA);
+   int Manejador = iMA(_Symbol, PERIOD_CURRENT, pPeriodMA, pShiftMA, pMetodoMA, pPrecioMA);
 
    if(Manejador == INVALID_HANDLE)
      {
@@ -232,5 +232,58 @@ string MA_EntrySignal(double pPrecio1, double pPrecio2, double pMA1, double pMA2
    Print("Valores del precio e indicadores: ", valores);
 
    return str;
+  }
+//+------------------------------------------------------------------+
+
+// Funciones de las bandas de Bollinger
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+int BB_Init(int pPeriodBB, int pShiftBB, double pDesviacionBB, ENUM_APPLIED_PRICE pPrecioBB)
+  {
+// En caso de error, al inicializar las BB, GetLastError() nos dará el código del error y lo almacenará en _LastError
+// ResetLastError cambiará el valor de la variable a _LastError a 0
+   ResetLastError();
+
+// El manejador es un identificador único para el indicador. Se utiliza para todas las acciones relacionadas con este, como obtener datos o eliminarlo
+   int Manejador = iBands(_Symbol, PERIOD_CURRENT, pPeriodBB, pShiftBB, pDesviacionBB, pPrecioBB);
+
+   if(Manejador == INVALID_HANDLE)
+     {
+      Print("Ha habido un error creando el manejador del indicador BB", GetLastError());
+      return -1;
+     }
+
+   Print("El manejador del indicador BB se ha creado con éxito");
+   return Manejador;
+  }
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+double BB(int pManejadorBB, int pBuffer, int pShift)
+  {
+   ResetLastError();
+
+// Creamos array que llenamos con los precios del indicador
+   double BB[];
+   ArraySetAsSeries(BB, true);
+// Llenamos el array con los 3 valores más recientes del MA
+
+   bool resultado = CopyBuffer(pManejadorBB, pBuffer, 0, 3, BB);
+   if(resultado == false)
+     {
+      Print("Error al copiar datos: ", GetLastError());
+
+     }
+
+   double valorBB = BB[pShift];
+
+// Normalizamos valorMA a los dígitos de nuestro símbolo y lo retornamos
+   valorBB = NormalizeDouble(valorBB, _Digits);
+
+   return valorBB;
   }
 //+------------------------------------------------------------------+
