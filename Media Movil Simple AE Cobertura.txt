@@ -21,6 +21,8 @@
 
 sinput group "AE Ajustes Generales"
 input ulong MagicNumber = 101;
+input bool UtilizarPoliticaRellenado = false; // si encuentras error 4756, debes usar esto
+input ENUM_ORDER_TYPE_FILLING PoliticaRellenado = ORDER_FILLING_FOK;
 
 sinput group "Ajustes media móvil"
 input int PeriodoMA = 30; // 30 número de velas a tener en cuenta por defecto
@@ -119,16 +121,10 @@ void OnTick()
 
       string entrySignal = MA_EntrySignal(cierre1, cierre2, ma1, ma2);
 
-      if(entrySignal == "LARGO")
+      if(entrySignal == "LARGO" || entrySignal == "CORTO")
         {
-
+         ulong ticket = AperturaTrades(entrySignal, MagicNumber, VolumenFijo);
         }
-      else
-         if(entrySignal == "CORTO")
-           {
-
-           }
-
 
       // Gestión de posiciones
      }
@@ -324,5 +320,91 @@ double BB(int pManejadorBB, int pBuffer, int pShift)
    valorBB = NormalizeDouble(valorBB, _Digits);
 
    return valorBB;
+  }
+//+------------------------------------------------------------------+
+
+// Funciones para la colocación de órdenes
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+ulong AperturaTrades(string pEntrySignal, ulong pMagicNumber, double pVolumenFijo)
+  {
+
+   double precioAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   double precioBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+
+//Precio debe ser normalizado a dígitos o tamaño del tick (ticksize)
+
+   precioAsk = round(precioAsk/tickSize) * tickSize;
+   precioBid = round(precioBid/tickSize) * tickSize;
+
+   string comentario = "COMPRA" + " | " + _Symbol + " | " + string(pMagicNumber);
+
+//Declaración e inicialización de los objetos solicitud y resultado
+   MqlTradeRequest solicitud = {};
+   MqlTradeResult resultado = {};
+
+   if(pEntrySignal == "LARGO")
+     {
+      //Parámetros de la solicitud
+      solicitud.action = TRADE_ACTION_DEAL;
+      solicitud.symbol = _Symbol;
+      solicitud.volume = pVolumenFijo;
+      solicitud.type = ORDER_TYPE_BUY;
+      solicitud.price = precioAsk;
+      solicitud.deviation = 10;
+      solicitud.magic = pMagicNumber;
+      solicitud.comment = comentario;
+
+      //Envio de la solicitud
+      if(UtilizarPoliticaRellenado)
+         solicitud.type_filling = PoliticaRellenado;
+
+      if(!OrderSend(solicitud, resultado))
+         Print("Error en el envío de la orden: ", GetLastError());
+      //Si la solicitud no se envía, imprimimos código
+
+      //Información de la operación
+      Print("Abierta ", solicitud.symbol, " ", pEntrySignal, "orden #", resultado.order, ": ", resultado.retcode, ", Volumen:", resultado.volume, ", Precio:", DoubleToString(precioAsk, _Digits));
+     }
+   else
+      if(pEntrySignal == "CORTO")
+        {
+         //Parámetros de la solicitud
+         solicitud.action = TRADE_ACTION_DEAL;
+         solicitud.symbol = _Symbol;
+         solicitud.volume = pVolumenFijo;
+         solicitud.type = ORDER_TYPE_SELL;
+         solicitud.price = precioBid;
+         solicitud.deviation = 10;
+         solicitud.magic = pMagicNumber;
+         solicitud.comment = comentario;
+
+         //Envio de la solicitud
+         if(UtilizarPoliticaRellenado)
+            solicitud.type_filling = PoliticaRellenado;
+
+         if(!OrderSend(solicitud, resultado))
+            Print("Error en el envío de la orden: ", GetLastError());
+         //Si la solicitud no se envía, imprimimos código
+
+         //Información de la operación
+         Print("Abierta ", solicitud.symbol, " ", pEntrySignal, "orden #", resultado.order, ": ", resultado.retcode, ", Volumen:", resultado.volume, ", Precio:", DoubleToString(precioBid, _Digits));
+
+
+        }
+
+   if(resultado.retcode == TRADE_RETCODE_DONE || resultado.retcode == TRADE_RETCODE_DONE_PARTIAL || resultado.retcode == TRADE_RETCODE_PLACED || resultado.retcode == TRADE_RETCODE_NO_CHANGES)
+     {
+      return resultado.order;
+
+     }
+   else
+     {
+      return 0;
+     }
+
   }
 //+------------------------------------------------------------------+
