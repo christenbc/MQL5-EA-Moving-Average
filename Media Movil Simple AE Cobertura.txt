@@ -91,19 +91,33 @@ void OnTick()
       Print("Nueva barra detectada");
       // Precio e indicadores
       double cierre1 = Close(1);
+      double cierre2 = Close(2);
       double open1 = Open(1);
 
       // Normalización a tick size
       double tickSize = SymbolInfoDouble(_Symbol,SYMBOL_TRADE_TICK_SIZE);
       cierre1 = round(cierre1/tickSize) * tickSize;
+      cierre2 = round(cierre2/tickSize) * tickSize;
 
       double ma1 = ma(ManejadorMA, 1);
-      Print(ma1);
+      double ma2 = ma(ManejadorMA, 2);
 
       // Cierre de posiciones
 
 
       // Colocación de órdenes
+
+      string entrySignal = MA_EntrySignal(cierre1, cierre2, ma1, ma2);
+
+      if(entrySignal == "LARGO")
+        {
+
+        }
+      else
+         if(entrySignal == "CORTO")
+           {
+
+           }
 
 
       // Gestión de posiciones
@@ -187,5 +201,36 @@ double ma(int pManejadorMA, int pShift)
    valorMA = NormalizeDouble(valorMA, _Digits);
 
    return valorMA;
+  }
+//+------------------------------------------------------------------+
+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+string MA_EntrySignal(double pPrecio1, double pPrecio2, double pMA1, double pMA2)
+  {
+   string str = "";
+   string valores;
+
+   if(pPrecio1 > pMA1 && pPrecio2 <= pMA2)
+     {
+      str = "LARGO";
+     }
+   else
+      if(pPrecio1 > pMA1 && pPrecio2 >= pMA2)
+        {
+         str = "CORTO";
+        }
+      else
+        {
+         str = "NO_OPERAR";
+        }
+
+   StringConcatenate(valores, "MA 1: ", DoubleToString(pMA1, _Digits), " | ", "MA 2: ", DoubleToString(pMA2, _Digits), " | ",  "Cierre 1: ", DoubleToString(pPrecio1, _Digits), " | ",  "Cierre 2: ", DoubleToString(pPrecio2, _Digits));
+
+   Print("Valores del precio e indicadores: ", valores);
+
+   return str;
   }
 //+------------------------------------------------------------------+
