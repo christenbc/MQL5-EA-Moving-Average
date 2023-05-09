@@ -84,8 +84,10 @@ void OnTick()
       Print("Nueva barra detectada");
       // Precio e indicadores
       double cierre1 = Close(1);
-      Print("Cierre de la vela 1: ", cierre1);
 
+      // Normalización a tick size
+      double tickSize = SymbolInfoDouble(_Symbol,SYMBOL_TRADE_TICK_SIZE);
+      cierre1 = round(cierre1/tickSize) * tickSize;
 
       // Cierre de posiciones
 
