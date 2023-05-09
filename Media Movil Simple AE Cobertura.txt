@@ -50,10 +50,11 @@ int OnInit()
   {
    glTiempoBarraApertura = D'1971.01.01'; // esto equivale a un año en segundos
    ManejadorMA = MA_Init(PeriodoMA, ShiftMA, MetodoMA, PrecioMA);
-   
-   if (ManejadorMA == -1) {
+
+   if(ManejadorMA == -1)
+     {
       return (INIT_FAILED);
-   }
+     }
 
    return(INIT_SUCCEEDED);
   }
@@ -95,6 +96,9 @@ void OnTick()
       // Normalización a tick size
       double tickSize = SymbolInfoDouble(_Symbol,SYMBOL_TRADE_TICK_SIZE);
       cierre1 = round(cierre1/tickSize) * tickSize;
+
+      double ma1 = ma(ManejadorMA, 1);
+      Print(ma1);
 
       // Cierre de posiciones
 
@@ -155,5 +159,33 @@ int MA_Init(int pPeriodMA, int pShiftMA, ENUM_MA_METHOD pMetodoMA, ENUM_APPLIED_
 
    Print("El manejador del indicador MA se ha creado con éxito");
    return Manejador;
+  }
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+double ma(int pManejadorMA, int pShift)
+  {
+   ResetLastError();
+
+// Creamos array que llenamos con los precios del indicador
+   double ma[];
+   ArraySetAsSeries(ma, true);
+// Llenamos el array con los 3 valores más recientes del MA
+
+   bool resultado = CopyBuffer(pManejadorMA, 0, 0, 3, ma);
+   if(resultado == false)
+     {
+      Print("Error al copiar datos: ", GetLastError());
+
+     }
+
+   double valorMA = ma[pShift];
+
+// Normalizamos valorMA a los dígitos de nuestro símbolo y lo retornamos
+   valorMA = NormalizeDouble(valorMA, _Digits);
+
+   return valorMA;
   }
 //+------------------------------------------------------------------+
