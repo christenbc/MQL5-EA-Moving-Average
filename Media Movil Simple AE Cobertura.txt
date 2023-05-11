@@ -109,7 +109,7 @@ void OnTick()
       // Señal de cierre
       string exitSignal = MA_ExitSignal(cierre1, cierre2, ma1, ma2);
 
-      if(exitSignal == "CIERRE_LARGO" || exitSignal == "CIERRE_CORTO")
+      if((exitSignal == "CIERRE_LARGO" || exitSignal == "CIERRE_CORTO") && RevisionPosicionesColocadas(MagicNumber) == false)
         {
 
         }
@@ -406,5 +406,29 @@ ulong AperturaTrades(string pEntrySignal, ulong pMagicNumber, double pVolumenFij
       return 0;
      }
 
+  }
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+bool RevisionPosicionesColocadas(ulong pMagicNumber)
+  {
+   bool posicionColocada = false;
+
+   for(int i= PositionsTotal() - 1; i>=0; i--)
+     {
+      ulong posicionTicket = PositionGetTicket(i);
+      PositionSelectByTicket(posicionTicket);
+
+      ulong posicionMagico = PositionGetInteger(POSITION_MAGIC);
+      if(posicionMagico == pMagicNumber)
+        {
+         posicionColocada = true;
+         break;
+        }
+     }
+
+   return posicionColocada;
   }
 //+------------------------------------------------------------------+
