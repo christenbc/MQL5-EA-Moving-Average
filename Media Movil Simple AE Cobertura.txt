@@ -90,8 +90,10 @@ void OnTick()
 
    if(nuevaBarra)
      {
-      Print("Nueva barra detectada");
-      // Precio e indicadores
+      // -------------------- //
+      // Precio e indicadores //
+      // -------------------- //
+
       double cierre1 = Close(1);
       double cierre2 = Close(2);
       double open1 = Open(1);
@@ -104,7 +106,9 @@ void OnTick()
       double ma1 = ma(ManejadorMA, 1);
       double ma2 = ma(ManejadorMA, 2);
 
-      // Cierre de posiciones
+      // -------------------- //
+      // Cierre de posiciones //
+      // -------------------- //
 
       // Señal de cierre
       string exitSignal = MA_ExitSignal(cierre1, cierre2, ma1, ma2);
@@ -116,8 +120,9 @@ void OnTick()
 
       Sleep(1000); // dar tiempo al servidor para tramitar la orden
 
-
-      // Colocación de órdenes
+      // --------------------- //
+      // Colocación de órdenes //
+      // --------------------- //
 
       string entrySignal = MA_EntrySignal(cierre1, cierre2, ma1, ma2);
 
@@ -126,13 +131,16 @@ void OnTick()
          ulong ticket = AperturaTrades(entrySignal, MagicNumber, VolumenFijo);
         }
 
-      // Gestión de posiciones
+      // --------------------- //
+      // Gestión de posiciones //
+      // --------------------- //
      }
 
   }
 
-
-// Funciones de precio
+// --------------------- //
+// Funciones de precio   //
+// --------------------- //
 
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -158,6 +166,10 @@ double Open(int pShift)
   }
 
 // Funciones de la media móvil
+
+// ----------------------------- //
+// Funciones de la media móvil   //
+// ----------------------------- //
 
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -270,7 +282,9 @@ string MA_ExitSignal(double pPrecio1, double pPrecio2, double pMA1, double pMA2)
    return str;
   }
 
-// Funciones de las bandas de Bollinger
+// -------------------------------------- //
+// Funciones de las bandas de Bollinger   //
+// -------------------------------------- //
 
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -323,7 +337,9 @@ double BB(int pManejadorBB, int pBuffer, int pShift)
   }
 //+------------------------------------------------------------------+
 
-// Funciones para la colocación de órdenes
+// ----------------------------------------- //
+// Funciones para la colocación de órdenes   //
+// ----------------------------------------- //
 
 //+------------------------------------------------------------------+
 //|                                                                  |
