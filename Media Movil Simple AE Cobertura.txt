@@ -110,12 +110,12 @@ void OnTick()
       // Cierre de posiciones //
       // -------------------- //
 
-      // Señal de cierre
+      // Señal de cierre y cierra de posiciones
       string exitSignal = MA_ExitSignal(cierre1, cierre2, ma1, ma2);
 
       if((exitSignal == "CIERRE_LARGO" || exitSignal == "CIERRE_CORTO") && RevisionPosicionesColocadas(MagicNumber) == false)
         {
-
+         CierrePosiciones(MagicNumber, exitSignal);
         }
 
       Sleep(1000); // dar tiempo al servidor para tramitar la orden
@@ -123,8 +123,10 @@ void OnTick()
       // --------------------- //
       // Colocación de órdenes //
       // --------------------- //
-
+      
+      // Señal de entrada y apertura de posiciones
       string entrySignal = MA_EntrySignal(cierre1, cierre2, ma1, ma2);
+      Comment("AE #", MagicNumber, " | ", exitSignal, " | ", entrySignal, " señales detectadas");
 
       if(entrySignal == "LARGO" || entrySignal == "CORTO")
         {
@@ -236,7 +238,7 @@ string MA_EntrySignal(double pPrecio1, double pPrecio2, double pMA1, double pMA2
       str = "LARGO";
      }
    else
-      if(pPrecio1 > pMA1 && pPrecio2 >= pMA2)
+      if(pPrecio1 < pMA1 && pPrecio2 >= pMA2)
         {
          str = "CORTO";
         }
@@ -266,7 +268,7 @@ string MA_ExitSignal(double pPrecio1, double pPrecio2, double pMA1, double pMA2)
       str = "CIERRE_CORTO";
      }
    else
-      if(pPrecio1 > pMA1 && pPrecio2 >= pMA2)
+      if(pPrecio1 < pMA1 && pPrecio2 >= pMA2)
         {
          str = "CIERRE_LARGO";
         }
@@ -446,5 +448,64 @@ bool RevisionPosicionesColocadas(ulong pMagicNumber)
      }
 
    return posicionColocada;
+  }
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void CierrePosiciones(ulong pMagicNumber, string pExitSignal)
+  {
+
+   MqlTradeRequest solicitud = {};
+   MqlTradeResult resultado = {};
+
+   for(int i= PositionsTotal() - 1; i>=0; i--)
+     {
+      // Resetear de los valores objetos solicitud y resultado
+      ZeroMemory(solicitud);
+      ZeroMemory(resultado);
+
+      ulong posicionTicket = PositionGetTicket(i);
+      PositionSelectByTicket(posicionTicket);
+
+      ulong posicionMagico = PositionGetInteger(POSITION_MAGIC);
+      ulong posicionTipo = PositionGetInteger(POSITION_TYPE);
+
+      if(posicionMagico == pMagicNumber && pExitSignal == "CIERRE_LARGO" && posicionTipo == POSITION_TYPE_BUY)
+        {
+         solicitud.action = TRADE_ACTION_DEAL;
+         solicitud.type = ORDER_TYPE_SELL;
+         solicitud.symbol = _Symbol;
+         solicitud.position = posicionTicket;
+         solicitud.volume = PositionGetDouble(POSITION_VOLUME);
+         solicitud.price = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+         solicitud.deviation = 10;
+
+         bool sent = OrderSend(solicitud, resultado);
+         if(sent == true)
+           {
+            Print("Posición #", posicionTicket, " cerrada");
+           }
+        }
+      else
+         if(posicionMagico == pMagicNumber && pExitSignal == "CIERRE_CORTO" && posicionTipo == POSITION_TYPE_SELL)
+           {
+            solicitud.action = TRADE_ACTION_DEAL;
+            solicitud.type = ORDER_TYPE_BUY;
+            solicitud.symbol = _Symbol;
+            solicitud.position = posicionTicket;
+            solicitud.volume = PositionGetDouble(POSITION_VOLUME);
+            solicitud.price = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+            solicitud.deviation = 10;
+
+            bool sent = OrderSend(solicitud, resultado);
+            if(sent == true)
+              {
+               Print("Posición #", posicionTicket, " cerrada");
+              }
+
+           }
+     }
   }
 //+------------------------------------------------------------------+
