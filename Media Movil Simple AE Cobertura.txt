@@ -113,7 +113,7 @@ void OnTick()
       // Señal de cierre y cierra de posiciones
       string exitSignal = MA_ExitSignal(cierre1, cierre2, ma1, ma2);
 
-      if((exitSignal == "CIERRE_LARGO" || exitSignal == "CIERRE_CORTO") && RevisionPosicionesColocadas(MagicNumber) == false)
+      if(exitSignal == "CIERRE_LARGO" || exitSignal == "CIERRE_CORTO")
         {
          CierrePosiciones(MagicNumber, exitSignal);
         }
@@ -128,7 +128,7 @@ void OnTick()
       string entrySignal = MA_EntrySignal(cierre1, cierre2, ma1, ma2);
       Comment("AE #", MagicNumber, " | ", exitSignal, " | ", entrySignal, " señales detectadas");
 
-      if(entrySignal == "LARGO" || entrySignal == "CORTO")
+      if((entrySignal == "LARGO" || entrySignal == "CORTO") && RevisionPosicionesColocadas(MagicNumber) == false)
         {
          ulong ticket = AperturaTrades(entrySignal, MagicNumber, VolumenFijo);
         }
