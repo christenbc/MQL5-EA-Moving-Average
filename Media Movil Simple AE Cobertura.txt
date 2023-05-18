@@ -123,7 +123,7 @@ void OnTick()
       // --------------------- //
       // Colocación de órdenes //
       // --------------------- //
-      
+
       // Señal de entrada y apertura de posiciones
       string entrySignal = MA_EntrySignal(cierre1, cierre2, ma1, ma2);
       Comment("AE #", MagicNumber, " | ", exitSignal, " | ", entrySignal, " señales detectadas");
@@ -131,11 +131,19 @@ void OnTick()
       if((entrySignal == "LARGO" || entrySignal == "CORTO") && RevisionPosicionesColocadas(MagicNumber) == false)
         {
          ulong ticket = AperturaTrades(entrySignal, MagicNumber, VolumenFijo);
+
+         // Modificación de SL & TP
+         if(ticket > 0)   // existe una posición para modificar
+           {
+            double stopLoss = CalcularStopLoss(entrySignal, SLPuntosFijos, SLPuntosFijosMA, ma1);
+           }
         }
 
       // --------------------- //
       // Gestión de posiciones //
       // --------------------- //
+
+
      }
 
   }
@@ -507,5 +515,50 @@ void CierrePosiciones(ulong pMagicNumber, string pExitSignal)
 
            }
      }
+  }
+//+------------------------------------------------------------------+
+
+// Funciones para la gestión de posiciones
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+double CalcularStopLoss(string pEntrySignal, int pSLPuntosFijos,  int pSLPuntosFijosMA, double pMA)
+  {
+   double stopLoss = 0.0;
+   double precioAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   double precioBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+
+   if(pEntrySignal == "LARGO")
+     {
+      if(pSLPuntosFijos > 0)
+        {
+         stopLoss = precioBid - (pSLPuntosFijos * _Point);
+        }
+      else
+         if(pSLPuntosFijosMA > 0)
+           {
+            stopLoss = pMA - (pSLPuntosFijosMA * _Point);
+           }
+
+     }
+
+   if(pEntrySignal == "CORTO")
+     {
+      if(pSLPuntosFijos > 0)
+        {
+         stopLoss = precioAsk + (pSLPuntosFijos * _Point);
+        }
+      else
+         if(pSLPuntosFijosMA > 0)
+           {
+            stopLoss = pMA + (pSLPuntosFijosMA * _Point);
+           }
+
+     }
+
+   stopLoss = round(stopLoss/tickSize) * tickSize;
+   return stopLoss;
   }
 //+------------------------------------------------------------------+
