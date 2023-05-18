@@ -170,6 +170,11 @@ void OnTick()
          TrailingStopLoss(MagicNumber, TSLPuntosFijos);
         }
 
+      if(BEPuntosFijos > 0)
+        {
+         BreakEven(MagicNumber, BEPuntosFijos);
+        }
+
      }
 
   }
@@ -723,6 +728,76 @@ void TrailingStopLoss(ulong pMagicNumber, int pTSLPuntosFijos)
                if(!sent)
                  {
                   Print("OrderSend TSL Error: ", GetLastError());
+                 }
+              }
+           }
+
+     }
+  }
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void BreakEven(ulong pMagicNumber, int pBEPuntosFijos)
+  {
+   MqlTradeRequest solicitud = {};
+   MqlTradeResult resultado = {};
+
+   for(int i= PositionsTotal() - 1; i >= 0; i--)
+     {
+      // Resetear de los valores objetos solicitud y resultado
+      ZeroMemory(solicitud);
+      ZeroMemory(resultado);
+
+      ulong posicionTicket = PositionGetTicket(i);
+      PositionSelectByTicket(posicionTicket);
+
+      ulong posicionMagico = PositionGetInteger(POSITION_MAGIC);
+      ulong posicionTipo = PositionGetInteger(POSITION_TYPE);
+      double stopLossActual = PositionGetDouble(POSITION_SL);
+      double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+      double precioApertura = PositionGetDouble(POSITION_PRICE_OPEN);
+      double stopLossNuevo = round(precioApertura/tickSize) * tickSize;
+
+      if(posicionMagico == pMagicNumber && posicionTipo == POSITION_TYPE_BUY)
+        {
+         double precioBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+         double BEDistancia = precioApertura + (pBEPuntosFijos * _Point);
+
+         if(stopLossNuevo > stopLossActual && precioBid > BEDistancia)
+           {
+            solicitud.action = TRADE_ACTION_SLTP;
+            solicitud.position = posicionTicket;
+            solicitud.comment = "BE. " + _Symbol + " | " + string(pMagicNumber);
+            solicitud.sl = stopLossNuevo;
+
+            bool sent = OrderSend(solicitud, resultado);
+
+            if(!sent)
+              {
+               Print("OrderSend BE Error: ", GetLastError());
+              }
+           }
+        }
+      else
+         if(posicionMagico == pMagicNumber && posicionTipo == POSITION_TYPE_SELL)
+           {
+            double precioAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+            double BEDistancia = precioApertura - (pBEPuntosFijos * _Point);
+
+            if(stopLossNuevo < stopLossActual)
+              {
+               solicitud.action = TRADE_ACTION_SLTP;
+               solicitud.position = posicionTicket;
+               solicitud.comment = "BE. " + _Symbol + " | " + string(pMagicNumber);
+               solicitud.sl = stopLossNuevo;
+
+               bool sent = OrderSend(solicitud, resultado);
+
+               if(!sent)
+                 {
+                  Print("OrderSend BE Error: ", GetLastError());
                  }
               }
            }
