@@ -157,6 +157,7 @@ void OnTick()
            {
             double stopLoss = CalcularStopLoss(entrySignal, SLPuntosFijos, SLPuntosFijosMA, ma1);
             double takeProfit = CalcularTakeProfit(entrySignal, TPPuntosFijos);
+            ModificacionPosiciones(ticket, MagicNumber, stopLoss, takeProfit);
            }
         }
 
@@ -164,6 +165,10 @@ void OnTick()
       // Gestión de posiciones //
       // --------------------- //
 
+      if(TSLPuntosFijos > 0)
+        {
+         TrailingStopLoss(MagicNumber, TSLPuntosFijos);
+        }
 
      }
 
@@ -459,6 +464,46 @@ ulong AperturaTrades(string pEntrySignal, ulong pMagicNumber, double pVolumenFij
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
+void ModificacionPosiciones(ulong pTicket, ulong pMagicNumber, double pSLPrecio, double pTPPrecio)
+  {
+   double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+
+   MqlTradeRequest solicitud = {};
+   MqlTradeResult resultado = {};
+
+   solicitud.action = TRADE_ACTION_SLTP;
+   solicitud.position = pTicket;
+   solicitud.symbol = _Symbol;
+   solicitud.sl = round(pSLPrecio/tickSize) * tickSize;
+   solicitud.tp = round(pTPPrecio/tickSize) * tickSize;
+   solicitud.comment = "MOD. " + " | " + _Symbol + " | " + string(pMagicNumber) + ", SL: " + DoubleToString(solicitud.sl, _Digits) + ", TP: " + DoubleToString(solicitud.tp, _Digits);
+
+   if(solicitud.sl > 0 || solicitud.tp > 0)
+     {
+      Sleep(1000);
+      bool sent = OrderSend(solicitud, resultado);
+      Print(resultado.comment);
+
+      if(!sent)
+        {
+         Print("Error de modificación OrderSen: ", GetLastError());
+         Sleep(3000);
+
+         sent = OrderSend(solicitud, resultado);
+         Print(resultado.comment);
+
+         if(!sent)
+           {
+            Print("2o intento error de modificación OrderSend: ", GetLastError());
+           }
+        }
+     }
+
+  }
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 bool RevisionPosicionesColocadas(ulong pMagicNumber)
   {
    bool posicionColocada = false;
@@ -612,5 +657,76 @@ double CalcularTakeProfit(string pEntrySignal, int pTPPuntosFijos)
 
    takeProfit = round(takeProfit/tickSize) * tickSize;
    return takeProfit;
+  }
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void TrailingStopLoss(ulong pMagicNumber, int pTSLPuntosFijos)
+  {
+   MqlTradeRequest solicitud = {};
+   MqlTradeResult resultado = {};
+
+   for(int i= PositionsTotal() - 1; i >= 0; i--)
+     {
+      // Resetear de los valores objetos solicitud y resultado
+      ZeroMemory(solicitud);
+      ZeroMemory(resultado);
+
+      ulong posicionTicket = PositionGetTicket(i);
+      PositionSelectByTicket(posicionTicket);
+
+      ulong posicionMagico = PositionGetInteger(POSITION_MAGIC);
+      ulong posicionTipo = PositionGetInteger(POSITION_TYPE);
+      double stopLossActual = PositionGetDouble(POSITION_SL);
+      double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+      double stopLossNuevo;
+
+      if(posicionMagico == pMagicNumber && posicionTipo == POSITION_TYPE_BUY)
+        {
+         double precioBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+         stopLossNuevo = precioBid - (pTSLPuntosFijos * _Point);
+         stopLossNuevo = round(stopLossNuevo/tickSize) * tickSize;
+
+         if(stopLossNuevo > stopLossActual)
+           {
+            solicitud.action = TRADE_ACTION_SLTP;
+            solicitud.position = posicionTicket;
+            solicitud.comment = "TSL. " + _Symbol + " | " + string(pMagicNumber);
+            solicitud.sl = stopLossNuevo;
+
+            bool sent = OrderSend(solicitud, resultado);
+
+            if(!sent)
+              {
+               Print("OrderSend TSL Error: ", GetLastError());
+              }
+           }
+        }
+      else
+         if(posicionMagico == pMagicNumber && posicionTipo == POSITION_TYPE_SELL)
+           {
+            double precioAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+            stopLossNuevo = precioAsk + (pTSLPuntosFijos * _Point);
+            stopLossNuevo = round(stopLossNuevo/tickSize) * tickSize;
+
+            if(stopLossNuevo < stopLossActual)
+              {
+               solicitud.action = TRADE_ACTION_SLTP;
+               solicitud.position = posicionTicket;
+               solicitud.comment = "TSL. " + _Symbol + " | " + string(pMagicNumber);
+               solicitud.sl = stopLossNuevo;
+
+               bool sent = OrderSend(solicitud, resultado);
+
+               if(!sent)
+                 {
+                  Print("OrderSend TSL Error: ", GetLastError());
+                 }
+              }
+           }
+
+     }
   }
 //+------------------------------------------------------------------+
