@@ -21,24 +21,44 @@
 
 sinput group "AE Ajustes Generales"
 input ulong MagicNumber = 101;
-input bool UtilizarPoliticaRellenado = false; // si encuentras error 4756, debes usar esto
+
+// si encuentras error 4756, debes usar esto
+input bool UtilizarPoliticaRellenado = false;
+
 input ENUM_ORDER_TYPE_FILLING PoliticaRellenado = ORDER_FILLING_FOK;
 
 sinput group "Ajustes media móvil"
-input int PeriodoMA = 30; // 30 número de velas a tener en cuenta por defecto
-input ENUM_MA_METHOD MetodoMA = MODE_EMA; // media móvil simple por defecto
-input int ShiftMA = 0; // número de velas desplazadas la media móvil, por defecto 0
-input ENUM_APPLIED_PRICE PrecioMA = PRICE_CLOSE; // por defecto la media móvil se basará en los cierres de velas
+// 30 número de velas a tener en cuenta por defecto
+input int PeriodoMA = 30;
+
+// media móvil simple por defecto
+input ENUM_MA_METHOD MetodoMA = MODE_EMA;
+
+// número de velas desplazadas la media móvil, por defecto 0
+input int ShiftMA = 0;
+
+// por defecto la media móvil se basará en los cierres de velas
+input ENUM_APPLIED_PRICE PrecioMA = PRICE_CLOSE;
 
 sinput group "Gestión monetaria"
-input double VolumenFijo = 0.1; // 1 minilote por defecto
+// 1 minilote por defecto
+input double VolumenFijo = 0.1;
 
 sinput group "Gestión de posiciones"
-input ushort SLPuntosFijos = 0; // stop loss
-input ushort SLPuntosFijosMA = 0; // stop loss que está por encima o debajo de la media móvil
-input ushort TPPuntosFijos = 0; // take profit
-input ushort TSLPuntosFijos = 0; // trading stop loss
-input ushort BEPuntosFijos = 0; // breakeven
+// stop loss
+input ushort SLPuntosFijos = 0;
+
+// stop loss que está por encima o debajo de la media móvil
+input ushort SLPuntosFijosMA = 0;
+
+// take profit
+input ushort TPPuntosFijos = 0;
+
+// trading stop loss
+input ushort TSLPuntosFijos = 0;
+
+// breakeven
+input ushort BEPuntosFijos = 0;
 
 datetime glTiempoBarraApertura;
 int ManejadorMA;
@@ -123,6 +143,12 @@ void OnTick()
       // --------------------- //
       // Colocación de órdenes //
       // --------------------- //
+      double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+      double stopLoss = CalcularStopLoss("LARGO", SLPuntosFijos, SLPuntosFijosMA, ma1);
+      double takeProfit = CalcularTakeProfit("LARGO", TPPuntosFijos);
+      Print("bid: ", bid);
+      Print("SL: ", stopLoss);
+      Print("TP: ", takeProfit);
 
       // Señal de entrada y apertura de posiciones
       string entrySignal = MA_EntrySignal(cierre1, cierre2, ma1, ma2);
@@ -135,7 +161,6 @@ void OnTick()
          // Modificación de SL & TP
          if(ticket > 0)   // existe una posición para modificar
            {
-            double stopLoss = CalcularStopLoss(entrySignal, SLPuntosFijos, SLPuntosFijosMA, ma1);
            }
         }
 
@@ -560,5 +585,36 @@ double CalcularStopLoss(string pEntrySignal, int pSLPuntosFijos,  int pSLPuntosF
 
    stopLoss = round(stopLoss/tickSize) * tickSize;
    return stopLoss;
+  }
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+double CalcularTakeProfit(string pEntrySignal, int pTPPuntosFijos)
+  {
+   double takeProfit = 0.0;
+   double precioAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   double precioBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+
+   if(pEntrySignal == "LARGO")
+     {
+      if(pTPPuntosFijos > 0)
+        {
+         takeProfit = precioBid + (pTPPuntosFijos * _Point);
+        }
+     }
+
+   if(pEntrySignal == "CORTO")
+     {
+      if(pTPPuntosFijos > 0)
+        {
+         takeProfit = precioAsk - (pTPPuntosFijos * _Point);
+        }
+     }
+
+   takeProfit = round(takeProfit/tickSize) * tickSize;
+   return takeProfit;
   }
 //+------------------------------------------------------------------+
