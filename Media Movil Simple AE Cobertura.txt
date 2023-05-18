@@ -143,12 +143,6 @@ void OnTick()
       // --------------------- //
       // Colocación de órdenes //
       // --------------------- //
-      double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-      double stopLoss = CalcularStopLoss("LARGO", SLPuntosFijos, SLPuntosFijosMA, ma1);
-      double takeProfit = CalcularTakeProfit("LARGO", TPPuntosFijos);
-      Print("bid: ", bid);
-      Print("SL: ", stopLoss);
-      Print("TP: ", takeProfit);
 
       // Señal de entrada y apertura de posiciones
       string entrySignal = MA_EntrySignal(cierre1, cierre2, ma1, ma2);
@@ -161,6 +155,8 @@ void OnTick()
          // Modificación de SL & TP
          if(ticket > 0)   // existe una posición para modificar
            {
+            double stopLoss = CalcularStopLoss(entrySignal, SLPuntosFijos, SLPuntosFijosMA, ma1);
+            double takeProfit = CalcularTakeProfit(entrySignal, TPPuntosFijos);
            }
         }
 
