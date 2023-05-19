@@ -153,7 +153,7 @@ void OnTick()
            {
             double stopLoss = CalcularStopLoss(entrySignal, SLPuntosFijos, SLPuntosFijosMA, ma1);
             double takeProfit = CalcularTakeProfit(entrySignal, TPPuntosFijos);
-            ModificacionPosiciones(ticket, MagicNumber, stopLoss, takeProfit);
+            ModificacionPosiciones(stopLoss, takeProfit);
            }
         }
 
@@ -432,7 +432,7 @@ bool AperturaTrades(string pEntrySignal, double pVolumenFijo)
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void ModificacionPosiciones(ulong pTicket, ulong pMagicNumber, double pSLPrecio, double pTPPrecio)
+void ModificacionPosiciones(double pSLPrecio, double pTPPrecio)
   {
    double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
 
@@ -440,11 +440,10 @@ void ModificacionPosiciones(ulong pTicket, ulong pMagicNumber, double pSLPrecio,
    MqlTradeResult resultado = {};
 
    solicitud.action = TRADE_ACTION_SLTP;
-   solicitud.position = pTicket;
    solicitud.symbol = _Symbol;
    solicitud.sl = round(pSLPrecio/tickSize) * tickSize;
    solicitud.tp = round(pTPPrecio/tickSize) * tickSize;
-   solicitud.comment = "MOD. " + " | " + _Symbol + " | " + string(pMagicNumber) + ", SL: " + DoubleToString(solicitud.sl, _Digits) + ", TP: " + DoubleToString(solicitud.tp, _Digits);
+   solicitud.comment = "MOD. " + " | " + _Symbol + ", SL: " + DoubleToString(solicitud.sl, _Digits) + ", TP: " + DoubleToString(solicitud.tp, _Digits);
 
    if(solicitud.sl > 0 || solicitud.tp > 0)
      {
