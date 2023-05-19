@@ -370,7 +370,7 @@ ulong AperturaTrades(string pEntrySignal, ulong pMagicNumber, double pVolumenFij
    precioAsk = round(precioAsk/tickSize) * tickSize;
    precioBid = round(precioBid/tickSize) * tickSize;
 
-   string comentario = "COMPRA" + " | " + _Symbol + " | " + string(pMagicNumber);
+   string comentario = pEntrySignal + " | " + _Symbol + " | " + string(pMagicNumber);
 
 //Declaración e inicialización de los objetos solicitud y resultado
    MqlTradeRequest solicitud = {};
