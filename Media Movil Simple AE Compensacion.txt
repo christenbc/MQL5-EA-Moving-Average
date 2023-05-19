@@ -159,10 +159,10 @@ void OnTick()
       // --------------------- //
 
       if(TSLPuntosFijos > 0)
-         TrailingStopLoss(MagicNumber, TSLPuntosFijos);
+         TrailingStopLoss(TSLPuntosFijos);
 
       if(BEPuntosFijos > 0)
-         BreakEven(MagicNumber, BEPuntosFijos);
+         BreakEven(BEPuntosFijos);
      }
 
   }
@@ -474,7 +474,7 @@ bool RevisionPosicionesColocadas()
      {
       ulong posicionTicket = PositionGetTicket(i);
       PositionSelectByTicket(posicionTicket);
-      
+
       string posicionSimbolo = PositionGetString(POSITION_SYMBOL);
 
       if(posicionSimbolo == _Symbol)
@@ -618,7 +618,7 @@ double CalcularTakeProfit(string pEntrySignal, int pTPPuntosFijos)
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void TrailingStopLoss(ulong pMagicNumber, int pTSLPuntosFijos)
+void TrailingStopLoss(int pTSLPuntosFijos)
   {
    MqlTradeRequest solicitud = {};
    MqlTradeResult resultado = {};
@@ -632,13 +632,13 @@ void TrailingStopLoss(ulong pMagicNumber, int pTSLPuntosFijos)
       ulong posicionTicket = PositionGetTicket(i);
       PositionSelectByTicket(posicionTicket);
 
-      ulong posicionMagico = PositionGetInteger(POSITION_MAGIC);
+      string posicionSimbolo = PositionGetString(POSITION_SYMBOL);
       ulong posicionTipo = PositionGetInteger(POSITION_TYPE);
       double stopLossActual = PositionGetDouble(POSITION_SL);
       double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
       double stopLossNuevo;
 
-      if(posicionMagico == pMagicNumber && posicionTipo == POSITION_TYPE_BUY)
+      if(posicionSimbolo == _Symbol && posicionTipo == POSITION_TYPE_BUY)
         {
          double precioBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
          stopLossNuevo = precioBid - (pTSLPuntosFijos * _Point);
@@ -648,8 +648,8 @@ void TrailingStopLoss(ulong pMagicNumber, int pTSLPuntosFijos)
          if(stopLossNuevo > stopLossActual)
            {
             solicitud.action = TRADE_ACTION_SLTP;
-            solicitud.position = posicionTicket;
-            solicitud.comment = "TSL. " + _Symbol + " | " + string(pMagicNumber);
+            solicitud.symbol = _Symbol;
+            solicitud.comment = "TSL. " + _Symbol;
             solicitud.sl = stopLossNuevo;
 
             bool sent = OrderSend(solicitud, resultado);
@@ -659,7 +659,7 @@ void TrailingStopLoss(ulong pMagicNumber, int pTSLPuntosFijos)
            }
         }
       else
-         if(posicionMagico == pMagicNumber && posicionTipo == POSITION_TYPE_SELL)
+         if(posicionSimbolo == _Symbol && posicionTipo == POSITION_TYPE_SELL)
            {
             double precioAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
             stopLossNuevo = precioAsk + (pTSLPuntosFijos * _Point);
@@ -669,8 +669,8 @@ void TrailingStopLoss(ulong pMagicNumber, int pTSLPuntosFijos)
             if(stopLossNuevo < stopLossActual)
               {
                solicitud.action = TRADE_ACTION_SLTP;
-               solicitud.position = posicionTicket;
-               solicitud.comment = "TSL. " + _Symbol + " | " + string(pMagicNumber);
+               solicitud.symbol = _Symbol;
+               solicitud.comment = "TSL. " + _Symbol;
                solicitud.sl = stopLossNuevo;
 
                bool sent = OrderSend(solicitud, resultado);
@@ -687,7 +687,7 @@ void TrailingStopLoss(ulong pMagicNumber, int pTSLPuntosFijos)
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void BreakEven(ulong pMagicNumber, int pBEPuntosFijos)
+void BreakEven(int pBEPuntosFijos)
   {
    MqlTradeRequest solicitud = {};
    MqlTradeResult resultado = {};
@@ -701,14 +701,14 @@ void BreakEven(ulong pMagicNumber, int pBEPuntosFijos)
       ulong posicionTicket = PositionGetTicket(i);
       PositionSelectByTicket(posicionTicket);
 
-      ulong posicionMagico = PositionGetInteger(POSITION_MAGIC);
+      string posicionSimbolo = PositionGetString(POSITION_SYMBOL);
       ulong posicionTipo = PositionGetInteger(POSITION_TYPE);
       double stopLossActual = PositionGetDouble(POSITION_SL);
       double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
       double precioApertura = PositionGetDouble(POSITION_PRICE_OPEN);
       double stopLossNuevo = round(precioApertura/tickSize) * tickSize;
 
-      if(posicionMagico == pMagicNumber && posicionTipo == POSITION_TYPE_BUY)
+      if(posicionSimbolo == _Symbol && posicionTipo == POSITION_TYPE_BUY)
         {
          double precioBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
          double BEDistancia = precioApertura + (pBEPuntosFijos * _Point);
@@ -716,8 +716,8 @@ void BreakEven(ulong pMagicNumber, int pBEPuntosFijos)
          if(stopLossNuevo > stopLossActual && precioBid > BEDistancia)
            {
             solicitud.action = TRADE_ACTION_SLTP;
-            solicitud.position = posicionTicket;
-            solicitud.comment = "BE. " + _Symbol + " | " + string(pMagicNumber);
+            solicitud.symbol = _Symbol;
+            solicitud.comment = "BE. " + _Symbol;
             solicitud.sl = stopLossNuevo;
 
             bool sent = OrderSend(solicitud, resultado);
@@ -727,7 +727,7 @@ void BreakEven(ulong pMagicNumber, int pBEPuntosFijos)
            }
         }
       else
-         if(posicionMagico == pMagicNumber && posicionTipo == POSITION_TYPE_SELL)
+         if(posicionSimbolo == _Symbol && posicionTipo == POSITION_TYPE_SELL)
            {
             double precioAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
             double BEDistancia = precioApertura - (pBEPuntosFijos * _Point);
@@ -735,8 +735,8 @@ void BreakEven(ulong pMagicNumber, int pBEPuntosFijos)
             if(stopLossNuevo < stopLossActual)
               {
                solicitud.action = TRADE_ACTION_SLTP;
-               solicitud.position = posicionTicket;
-               solicitud.comment = "BE. " + _Symbol + " | " + string(pMagicNumber);
+               solicitud.symbol = _Symbol;
+               solicitud.comment = "BE. " + _Symbol;
                solicitud.sl = stopLossNuevo;
 
                bool sent = OrderSend(solicitud, resultado);
