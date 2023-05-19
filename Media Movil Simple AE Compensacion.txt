@@ -144,7 +144,7 @@ void OnTick()
       string entrySignal = MA_EntrySignal(cierre1, cierre2, ma1, ma2);
       Comment("AE #", MagicNumber, " | ", exitSignal, " | ", entrySignal, " señales detectadas");
 
-      if((entrySignal == "LARGO" || entrySignal == "CORTO") && RevisionPosicionesColocadas(MagicNumber) == false)
+      if((entrySignal == "LARGO" || entrySignal == "CORTO") && RevisionPosicionesColocadas() == false)
         {
          ulong ticket = AperturaTrades(entrySignal, MagicNumber, VolumenFijo);
 
@@ -472,7 +472,7 @@ void ModificacionPosiciones(ulong pTicket, ulong pMagicNumber, double pSLPrecio,
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-bool RevisionPosicionesColocadas(ulong pMagicNumber)
+bool RevisionPosicionesColocadas()
   {
    bool posicionColocada = false;
 
@@ -480,9 +480,10 @@ bool RevisionPosicionesColocadas(ulong pMagicNumber)
      {
       ulong posicionTicket = PositionGetTicket(i);
       PositionSelectByTicket(posicionTicket);
+      
+      string posicionSimbolo = PositionGetString(POSITION_SYMBOL);
 
-      ulong posicionMagico = PositionGetInteger(POSITION_MAGIC);
-      if(posicionMagico == pMagicNumber)
+      if(posicionSimbolo == _Symbol)
         {
          posicionColocada = true;
          break;
