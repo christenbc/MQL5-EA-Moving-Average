@@ -74,9 +74,7 @@ int OnInit()
    ManejadorMA = MA_Init(PeriodoMA, ShiftMA, MetodoMA, PrecioMA);
 
    if(ManejadorMA == -1)
-     {
       return (INIT_FAILED);
-     }
 
    return(INIT_SUCCEEDED);
   }
@@ -134,9 +132,7 @@ void OnTick()
       string exitSignal = MA_ExitSignal(cierre1, cierre2, ma1, ma2);
 
       if(exitSignal == "CIERRE_LARGO" || exitSignal == "CIERRE_CORTO")
-        {
          CierrePosiciones(MagicNumber, exitSignal);
-        }
 
       Sleep(1000); // dar tiempo al servidor para tramitar la orden
 
@@ -166,15 +162,10 @@ void OnTick()
       // --------------------- //
 
       if(TSLPuntosFijos > 0)
-        {
          TrailingStopLoss(MagicNumber, TSLPuntosFijos);
-        }
 
       if(BEPuntosFijos > 0)
-        {
          BreakEven(MagicNumber, BEPuntosFijos);
-        }
-
      }
 
   }
@@ -249,10 +240,7 @@ double ma(int pManejadorMA, int pShift)
 
    bool resultado = CopyBuffer(pManejadorMA, 0, 0, 3, ma);
    if(resultado == false)
-     {
       Print("Error al copiar datos: ", GetLastError());
-
-     }
 
    double valorMA = ma[pShift];
 
@@ -273,18 +261,12 @@ string MA_EntrySignal(double pPrecio1, double pPrecio2, double pMA1, double pMA2
    string valores;
 
    if(pPrecio1 > pMA1 && pPrecio2 <= pMA2)
-     {
       str = "LARGO";
-     }
    else
       if(pPrecio1 < pMA1 && pPrecio2 >= pMA2)
-        {
          str = "CORTO";
-        }
       else
-        {
          str = "NO_OPERAR";
-        }
 
    StringConcatenate(valores, "MA 1: ", DoubleToString(pMA1, _Digits), " | ", "MA 2: ", DoubleToString(pMA2, _Digits), " | ",  "Cierre 1: ", DoubleToString(pPrecio1, _Digits), " | ",  "Cierre 2: ", DoubleToString(pPrecio2, _Digits));
 
@@ -303,18 +285,12 @@ string MA_ExitSignal(double pPrecio1, double pPrecio2, double pMA1, double pMA2)
    string valores;
 
    if(pPrecio1 > pMA1 && pPrecio2 <= pMA2)
-     {
       str = "CIERRE_CORTO";
-     }
    else
       if(pPrecio1 < pMA1 && pPrecio2 >= pMA2)
-        {
          str = "CIERRE_LARGO";
-        }
       else
-        {
          str = "NO_CERRAR";
-        }
 
    StringConcatenate(valores, "MA 1: ", DoubleToString(pMA1, _Digits), " | ", "MA 2: ", DoubleToString(pMA2, _Digits), " | ",  "Cierre 1: ", DoubleToString(pPrecio1, _Digits), " | ",  "Cierre 2: ", DoubleToString(pPrecio2, _Digits));
 
@@ -364,10 +340,7 @@ double BB(int pManejadorBB, int pBuffer, int pShift)
 
    bool resultado = CopyBuffer(pManejadorBB, pBuffer, 0, 3, BB);
    if(resultado == false)
-     {
       Print("Error al copiar datos: ", GetLastError());
-
-     }
 
    double valorBB = BB[pShift];
 
@@ -449,20 +422,12 @@ ulong AperturaTrades(string pEntrySignal, ulong pMagicNumber, double pVolumenFij
 
          //Información de la operación
          Print("Abierta ", solicitud.symbol, " ", pEntrySignal, "orden #", resultado.order, ": ", resultado.retcode, ", Volumen:", resultado.volume, ", Precio:", DoubleToString(precioBid, _Digits));
-
-
         }
 
    if(resultado.retcode == TRADE_RETCODE_DONE || resultado.retcode == TRADE_RETCODE_DONE_PARTIAL || resultado.retcode == TRADE_RETCODE_PLACED || resultado.retcode == TRADE_RETCODE_NO_CHANGES)
-     {
       return resultado.order;
-
-     }
    else
-     {
       return 0;
-     }
-
   }
 //+------------------------------------------------------------------+
 
@@ -498,9 +463,7 @@ void ModificacionPosiciones(ulong pTicket, ulong pMagicNumber, double pSLPrecio,
          Print(resultado.comment);
 
          if(!sent)
-           {
             Print("2o intento error de modificación OrderSend: ", GetLastError());
-           }
         }
      }
 
@@ -563,9 +526,7 @@ void CierrePosiciones(ulong pMagicNumber, string pExitSignal)
 
          bool sent = OrderSend(solicitud, resultado);
          if(sent == true)
-           {
             Print("Posición #", posicionTicket, " cerrada");
-           }
         }
       else
          if(posicionMagico == pMagicNumber && pExitSignal == "CIERRE_CORTO" && posicionTipo == POSITION_TYPE_SELL)
@@ -580,10 +541,7 @@ void CierrePosiciones(ulong pMagicNumber, string pExitSignal)
 
             bool sent = OrderSend(solicitud, resultado);
             if(sent == true)
-              {
                Print("Posición #", posicionTicket, " cerrada");
-              }
-
            }
      }
   }
@@ -604,29 +562,25 @@ double CalcularStopLoss(string pEntrySignal, int pSLPuntosFijos,  int pSLPuntosF
    if(pEntrySignal == "LARGO")
      {
       if(pSLPuntosFijos > 0)
-        {
          stopLoss = precioBid - (pSLPuntosFijos * _Point);
-        }
       else
          if(pSLPuntosFijosMA > 0)
-           {
             stopLoss = pMA - (pSLPuntosFijosMA * _Point);
-           }
 
+      if(stopLoss > 0)
+         stopLoss = AjusteNivelStopDebajo(precioBid, stopLoss);
      }
 
    if(pEntrySignal == "CORTO")
      {
       if(pSLPuntosFijos > 0)
-        {
          stopLoss = precioAsk + (pSLPuntosFijos * _Point);
-        }
       else
          if(pSLPuntosFijosMA > 0)
-           {
             stopLoss = pMA + (pSLPuntosFijosMA * _Point);
-           }
 
+      if(stopLoss > 0)
+         stopLoss = AjusteNivelStopArriba(precioAsk, stopLoss);
      }
 
    stopLoss = round(stopLoss/tickSize) * tickSize;
@@ -647,17 +601,20 @@ double CalcularTakeProfit(string pEntrySignal, int pTPPuntosFijos)
    if(pEntrySignal == "LARGO")
      {
       if(pTPPuntosFijos > 0)
-        {
          takeProfit = precioBid + (pTPPuntosFijos * _Point);
-        }
+
+      if(takeProfit > 0)
+         takeProfit = AjusteNivelStopArriba(precioBid, takeProfit);
      }
 
    if(pEntrySignal == "CORTO")
      {
       if(pTPPuntosFijos > 0)
-        {
          takeProfit = precioAsk - (pTPPuntosFijos * _Point);
-        }
+
+
+      if(takeProfit > 0)
+         takeProfit = AjusteNivelStopDebajo(precioAsk, takeProfit);
      }
 
    takeProfit = round(takeProfit/tickSize) * tickSize;
@@ -692,6 +649,7 @@ void TrailingStopLoss(ulong pMagicNumber, int pTSLPuntosFijos)
         {
          double precioBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
          stopLossNuevo = precioBid - (pTSLPuntosFijos * _Point);
+         stopLossNuevo = AjusteNivelStopDebajo(precioBid, stopLossNuevo);
          stopLossNuevo = round(stopLossNuevo/tickSize) * tickSize;
 
          if(stopLossNuevo > stopLossActual)
@@ -704,9 +662,7 @@ void TrailingStopLoss(ulong pMagicNumber, int pTSLPuntosFijos)
             bool sent = OrderSend(solicitud, resultado);
 
             if(!sent)
-              {
                Print("OrderSend TSL Error: ", GetLastError());
-              }
            }
         }
       else
@@ -714,6 +670,7 @@ void TrailingStopLoss(ulong pMagicNumber, int pTSLPuntosFijos)
            {
             double precioAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
             stopLossNuevo = precioAsk + (pTSLPuntosFijos * _Point);
+            stopLossNuevo = AjusteNivelStopArriba(precioAsk, stopLossNuevo);
             stopLossNuevo = round(stopLossNuevo/tickSize) * tickSize;
 
             if(stopLossNuevo < stopLossActual)
@@ -726,9 +683,7 @@ void TrailingStopLoss(ulong pMagicNumber, int pTSLPuntosFijos)
                bool sent = OrderSend(solicitud, resultado);
 
                if(!sent)
-                 {
                   Print("OrderSend TSL Error: ", GetLastError());
-                 }
               }
            }
 
@@ -775,9 +730,7 @@ void BreakEven(ulong pMagicNumber, int pBEPuntosFijos)
             bool sent = OrderSend(solicitud, resultado);
 
             if(!sent)
-              {
                Print("OrderSend BE Error: ", GetLastError());
-              }
            }
         }
       else
@@ -796,12 +749,63 @@ void BreakEven(ulong pMagicNumber, int pBEPuntosFijos)
                bool sent = OrderSend(solicitud, resultado);
 
                if(!sent)
-                 {
                   Print("OrderSend BE Error: ", GetLastError());
-                 }
               }
            }
 
      }
+  }
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//| Ajuste de niveles de stops                                       |
+//+------------------------------------------------------------------+
+double AjusteNivelStopArriba(double pPrecioActual, double pPrecioParaAjustar, int pPuntosAdicionales = 10)
+  {
+   double precioAjustado = pPrecioParaAjustar;
+
+   long nivelesStop = SymbolInfoInteger(_Symbol, SYMBOL_TRADE_STOPS_LEVEL);
+
+   if(nivelesStop > 0)
+     {
+      double nivelesStopPrecio = nivelesStop * _Point;
+      nivelesStopPrecio = pPrecioActual + nivelesStopPrecio;
+
+      double puntosAdicionales = pPuntosAdicionales * _Point;
+
+      if(precioAjustado <= nivelesStopPrecio + puntosAdicionales)
+        {
+         precioAjustado = nivelesStopPrecio + puntosAdicionales;
+         Print("Precio ajustado por encima del nivel de stops a " + string(precioAjustado));
+        }
+     }
+   return precioAjustado;
+  }
+//+------------------------------------------------------------------+
+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+double AjusteNivelStopDebajo(double pPrecioActual, double pPrecioParaAjustar, int pPuntosAdicionales = 10)
+  {
+   double precioAjustado = pPrecioParaAjustar;
+
+   long nivelesStop = SymbolInfoInteger(_Symbol, SYMBOL_TRADE_STOPS_LEVEL);
+
+   if(nivelesStop > 0)
+     {
+      double nivelesStopPrecio = nivelesStop * _Point;
+      nivelesStopPrecio = pPrecioActual - nivelesStopPrecio;
+
+      double puntosAdicionales = pPuntosAdicionales * _Point;
+
+      if(precioAjustado >= nivelesStopPrecio - puntosAdicionales)
+        {
+         precioAjustado = nivelesStopPrecio - puntosAdicionales;
+         Print("Precio ajustado por debajo del nivel de stops a " + string(precioAjustado));
+        }
+     }
+   return precioAjustado;
   }
 //+------------------------------------------------------------------+
